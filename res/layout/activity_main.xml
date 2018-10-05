@@ -27,7 +27,9 @@
         android:layout_height="248dp"
         android:layout_margin="5dp"
         android:layout_weight="0.08"
-        android:padding="10dp" >
+        android:padding="10dp"
+        android:stackFromBottom="true" >
+
     </ListView>
 
     <LinearLayout
