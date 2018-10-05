@@ -29,11 +29,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.StrictMode;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -48,12 +51,11 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 public class MainActivity extends Activity implements OnClickListener, android.content.DialogInterface.OnClickListener {
 
 	AlertDialog.Builder builder;
 	ListView lv;
-	EditText ipaddress, name, message;
+	EditText ipaddress, name, message, search;
 	Button btnSubmit, btnSend;
 	private String msg;
 	private String ip;
@@ -85,28 +87,68 @@ public class MainActivity extends Activity implements OnClickListener, android.c
         this.message = (EditText) this.findViewById(R.id.editText2);
         this.btnSend = (Button) this.findViewById(R.id.button1);
         this.lv = (ListView) this.findViewById(R.id.listView1);
+        this.search = (EditText) this.findViewById(R.id.editText1);
         this.btnSend.setOnClickListener(this);
         this.adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, list){
-
 			@Override
 			public View getView(int position, View convertView, ViewGroup parent) {
 				// TODO Auto-generated method stub
 				TextView tv = (TextView) super.getView(position, convertView, parent);
-				for(int i = 0; i < names.size(); i++){
-					if(namee.equals(names.get(i))){
+				
+					if(namee.equals(names.get(position))){
 						tv.setGravity(Gravity.RIGHT);
+						tv.setBackgroundResource(R.drawable.message);
 					}
 					else{
 						tv.setGravity(Gravity.LEFT);
+						tv.setBackgroundResource(R.drawable.received);
 					}
-				}
 				
+					
+			
 				return tv;
 			}
         	
         };
         
         this.lv.setAdapter(adapter);
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable(){
+
+			@Override
+			public void run() {
+				if(ip != null){
+					Message();
+				}
+				handler.postDelayed(this, 60 * 10);
+				// TODO Auto-generated method stub
+				
+			}
+        	
+        }, 60 * 10);
+        this.search.addTextChangedListener(new TextWatcher(){
+
+			@Override
+			public void afterTextChanged(Editable arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void beforeTextChanged(CharSequence arg0, int arg1,
+					int arg2, int arg3) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void onTextChanged(CharSequence arg0, int arg1, int arg2,
+					int arg3) {
+				// TODO Auto-generated method stub
+				adapter.getFilter().filter(arg0);
+			}
+        	
+        });
 
         
     }
@@ -156,9 +198,9 @@ public class MainActivity extends Activity implements OnClickListener, android.c
 		// TODO Auto-generated method stub
 		this.msg = this.message.getText().toString();
 		if(!this.msg.isEmpty()){
-			Toast.makeText(this, "Successfull", Toast.LENGTH_SHORT).show();
-			String url = "http://"+this.ip+"/server/addMessage.php";
-			Toast.makeText(this, url, Toast.LENGTH_SHORT).show();
+			//Toast.makeText(this, "Successfull", Toast.LENGTH_SHORT).show();
+			String url = "http://"+this.ip+"/android-server/addMessage.php";
+			//Toast.makeText(this, url, Toast.LENGTH_SHORT).show();
 			HttpClient httpClient = new DefaultHttpClient();
 			HttpPost httpPost = new HttpPost(url);
 			
@@ -205,8 +247,9 @@ public class MainActivity extends Activity implements OnClickListener, android.c
 	
 	private void Message(){
 		try {
+			names.clear();
 			list.clear();
-			URL url = new URL("http://"+this.ip+"/server/messages.php");
+			URL url = new URL("http://"+this.ip+"/android-server/messages.php");
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			InputStream is = conn.getInputStream();
 			BufferedReader br = new BufferedReader(new InputStreamReader(is));
@@ -223,6 +266,8 @@ public class MainActivity extends Activity implements OnClickListener, android.c
 				names.add(name);
 				list.add(name + ":" + message);
 				
+				//this.lv.refreshDrawableState();
+				
 			}
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
@@ -236,6 +281,8 @@ public class MainActivity extends Activity implements OnClickListener, android.c
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} 
+		this.adapter.notifyDataSetChanged();
+		
 	}
 
 
@@ -247,7 +294,7 @@ public class MainActivity extends Activity implements OnClickListener, android.c
 			case DialogInterface.BUTTON_POSITIVE:
 				this.ip = this.ipaddress.getText().toString();
 				this.namee = this.name.getText().toString();
-				Toast.makeText(this, this.ip + " " + this.namee, Toast.LENGTH_SHORT).show();
+				//Toast.makeText(this, this.ip + " " + this.namee, Toast.LENGTH_SHORT).show();
 				this.Message();
 			case DialogInterface.BUTTON_NEGATIVE:
 				arg0.dismiss();
